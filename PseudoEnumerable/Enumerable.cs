@@ -19,9 +19,25 @@ namespace PseudoEnumerable
         /// <exception cref="ArgumentNullException">Throws if <paramref name="source"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Throws if <paramref name="predicate"/> is null.</exception>
         public static IEnumerable<TSource> Filter<TSource>(this IEnumerable<TSource> source,
-            Func<TSource,bool> predicate)
+            Func<TSource, bool> predicate)
         {
-            throw new NotImplementedException();
+            ValidateIsNull(predicate, nameof(predicate));
+            ValidateIsNull(source, nameof(source));
+
+            IEnumerable<TSource> Iterate()
+            {
+                foreach (var item in source)
+                {
+                    if (!predicate(item))
+                    {
+                        continue;
+                    }
+
+                    yield return item;
+                }
+            }
+
+            return Iterate();
         }
 
         /// <summary>
@@ -110,7 +126,31 @@ namespace PseudoEnumerable
         /// <exception cref="ArgumentNullException">Throws if <paramref name="predicate"/> is null.</exception>
         public static bool ForAll<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            throw new NotImplementedException();
+            ValidateIsNull(predicate, nameof(predicate));
+            ValidateIsNull(source, nameof(source));
+
+            foreach (var item in source)
+            {
+                if(!predicate(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if value is null.
+        /// </summary>
+        /// <param name="value">The reference to check.</param>
+        /// <exception cref="ArgumentNullException">Throws when collection is null.</exception>
+        private static void ValidateIsNull<T>(T value, string name) where T : class
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException($"{name} cannot be null");
+            }
         }
     }
 }
