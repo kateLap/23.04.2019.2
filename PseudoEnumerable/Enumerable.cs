@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using PseudoLINQ;
 
 namespace PseudoEnumerable
 {
@@ -58,6 +59,36 @@ namespace PseudoEnumerable
         {
             throw new NotImplementedException();
         }
+        
+        /// <summary>
+        /// Returns the range of integers
+        /// </summary>
+        /// <param name="start">First number of the range</param>
+        /// <param name="count">Count of numbers.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Throws when count is less than zero.</exception>
+        /// <returns>The range of integers.</returns>
+        public static IEnumerable<int> Range(int start, int count)
+        {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException($"{nameof(count)} is less than zero");
+            }
+
+            checked
+            {
+                int last = start + count;
+            }
+
+            IEnumerable<int> Iterate()
+            {
+                while ((count--) > 0)
+                {
+                    yield return start++;               
+                }
+            }
+
+            return Iterate();
+        }
 
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key.
@@ -74,7 +105,10 @@ namespace PseudoEnumerable
         public static IEnumerable<TSource> SortBy<TSource, TKey>(this IEnumerable<TSource> source,
             Func<TSource, TKey> key)
         {
-            throw new NotImplementedException();
+            ValidateIsNull(source, nameof(source));
+            ValidateIsNull(key, nameof(key));
+
+            return SortBy(source, key, Comparer<TKey>.Default);
         }
 
         /// <summary>
@@ -94,7 +128,23 @@ namespace PseudoEnumerable
         public static IEnumerable<TSource> SortBy<TSource, TKey>(this IEnumerable<TSource> source,
             Func<TSource, TKey> key, IComparer<TKey> comparer)
         {
-            throw new NotImplementedException();
+            ValidateIsNull(source, nameof(source));
+            ValidateIsNull(key, nameof(key));
+            ValidateIsNull(comparer, nameof(comparer));
+
+            var list = new List<KeyValue<TKey, TSource>>();
+
+            foreach (var item in source)
+            {
+                list.Add(new KeyValue<TKey, TSource>(key(item), item, comparer));
+            }
+
+            list.Sort();
+
+            foreach (var item in list)
+            {
+                yield return item.Value;
+            }
         }
 
         /// <summary>
@@ -111,19 +161,19 @@ namespace PseudoEnumerable
         {
             ValidateIsNull(source, nameof(source));
 
+            if (source is IEnumerable<TResult> castedSource)
+            {
+                return castedSource;
+            }
+
             IEnumerable<TResult> Iterate()
             {
                 foreach (var item in source)
                 {
-                    if (!(item is TResult))
-                    {
-                        throw new InvalidCastException($"{nameof(item)} is invalid to cast");
-                    }
-
                     yield return (TResult)item;
                 }
             }
-
+            
             return Iterate();
         }
 
